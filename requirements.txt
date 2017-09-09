@@ -1,8 +1,11 @@
+click==5.1
 google-cloud-datastore
+google-cloud
 google-api-python-client
 requests
 Flask==0.12.2
 pyopenssl
 ndg-httpsclient
 pyasn1
+pycrypto
 pyrebase

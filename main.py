@@ -24,12 +24,30 @@ app = Flask(__name__)
 @app.route('/send', methods=['POST'])
 def send():
     req_json = request.get_json(force=True, cache=False)
-    # src_lang = req_json['src-lang']
-    dest_lang = req_json['dest-lang']
-    msg_text  = req_json['msg-text']
-    response  = tr.translate_text(dest_lang, msg_text)
+    receiverId = req_json['receiverId']
+    senderId = req_json['senderId']
+    
+    dest_lang = tr.get_dest_lang({'uid':receiverId})
+    msg_text = req_json['msg'] 
+    translated = tr.translate_text(dest_lang, msg_text)
+    
     # firebase send logic here
-    return jsonify(response)
+    try:    
+        send_data = {
+            'msg': translated['text'],
+            'timestamp': int(req_json['timestamp']),
+            'userid': receiverId
+        }
+        tr.firebase_send(senderId, receiverId, send_data)
+        return {
+            'status': True,
+            'message': 'Message sent'
+        }
+    except Exception as e:
+        return {
+            'status': False,
+            'message': str(e)
+        }
 
 
 @app.route('/user/add', methods=['POST'])

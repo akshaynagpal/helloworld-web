@@ -1,8 +1,12 @@
 from google.cloud import translate, datastore
 import google.auth
 import json
-import logging
+import pyrebase
+import json
 
+FIREBASE_CONFIG = None
+with open('keys/firebase-secrets.json') as f:
+    FIREBASE_CONFIG = json.load(f)
 
 class DataStore(object):
     def __init__(self, project_id):
@@ -99,3 +103,12 @@ def translate_text(target_lang, text):
             response['text-lines'].append(item['translatedText'])
     
     return response
+
+def get_dest_lang(user_data):
+    user = get_user(user_data)
+    return user['pref-lang']
+ 
+def firebase_send(senderId, receiverId, send_data):
+    FIREBASE = pyrebase.initialize_app(FIREBASE_CONFIG)
+    FIREBASE_DB = FIREBASE.database()
+    FIREBASE_DB.child("%s/%s" % (receiverId, senderId)).push(send_data)

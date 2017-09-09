@@ -37,7 +37,7 @@ def send():
         send_data = {
             'msg': translated['text'],
             'timestamp': int(req_json['timestamp']),
-            'userid': receiverId
+            'userid': senderId
         }
 
         tr.firebase_send(senderId, receiverId, send_data)

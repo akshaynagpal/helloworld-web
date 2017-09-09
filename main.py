@@ -21,14 +21,6 @@ import translation as tr
 app = Flask(__name__)
 
 
-@app.route('/')
-def hello():
-    d = {
-        'name':'Kunal Baweja',
-        'age':'24'
-    }
-    return jsonify(d)
-
 @app.route('/send', methods=['POST'])
 def send():
     req_json = request.get_json(force=True, cache=False)
@@ -45,8 +37,8 @@ def add_user():
     req_json = request.get_json(force=True, cache=False)
     uid = req_json['uid']
     email = req_json['email']
-    pref_lang = req_json['pref-lang']
-    response = tr.add_user(uid, email, pref_lang)
+    data = req_json['data']
+    response = tr.add_user(uid, email, data)
     return jsonify(response)
 
 @app.route('/user/update', methods=['PUT'])
@@ -55,6 +47,12 @@ def update_user():
     email = req_json['email']
     data = req_json['data']
     response = tr.update_user(email, data)
+    return jsonify(response)
+
+@app.route('/user/get', methods=['GET'])
+def get_user():
+    filters = dict(request.args)
+    response = tr.get_user(filters)
     return jsonify(response)
 
 @app.errorhandler(500)

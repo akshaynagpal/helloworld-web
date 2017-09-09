@@ -1,5 +1,6 @@
 from google.cloud import translate, datastore
 import google.auth
+import json
 import logging
 
 
@@ -7,17 +8,16 @@ class DataStore(object):
     def __init__(self, project_id):
         self.client = datastore.Client(project_id)
 
-    def add_user(self, uid, email, pref_lang):
+    def add_user(self, uid, email, data):
         response = dict()
         try:
-            key = self.client.key('user', email)
-            user = datastore.Entity(key, exclude_from_indexes=['pref-lang'])
-            user.update({
-                'uid': uid,
-                'pref-lang': pref_lang
-            })
-
+            key = self.client.key('user', str(email))
+            user = datastore.Entity(key)
+            user['uid'] = str(uid)
+            for key in data:
+                user[key] = data[key]
             self.client.put(user)
+
             response['status'] = True
             response['message'] = 'User added successfully'
         except ValueError as e:
@@ -36,11 +36,10 @@ class DataStore(object):
                 if not user:
                     raise ValueError('User does not exist')
 
-                for key, val in data.iteritems():
-                    user[key] = val
-
+                for key in data:
+                    user[key] = data[key]
                 self.client.put(user)
-        
+
                 response['status'] = True
                 response['message'] = 'User updated successfully'
         
@@ -50,11 +49,21 @@ class DataStore(object):
 
         return response
 
+    def get_user(self, filters):
+        response = dict()
+        query = self.client.query(kind='user')
+        for key in filters:
+            for val in filters[key]:
+                query.add_filter(key, '=', val)
+        results = list(query.fetch())
+        return results
 
-def add_user(uid, email, pref_lang='en'):
+
+
+def add_user(uid, email, data=dict()):
     credentials, project_id = google.auth.default()
     ds_client = DataStore(project_id)
-    return ds_client.add_user(uid, email, pref_lang)
+    return ds_client.add_user(uid, email, data)
 
 
 def update_user(email, data):
@@ -62,6 +71,10 @@ def update_user(email, data):
     ds_client = DataStore(project_id)
     return ds_client.update_user(email, data)
 
+def get_user(filters):
+    credentials, project_id = google.auth.default()
+    ds_client = DataStore(project_id)
+    return ds_client.get_user(filters)
 
 def translate_text(target_lang, text):
     # Translates text into the target language.

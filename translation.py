@@ -26,8 +26,6 @@ def translate_text(target_lang, text):
     # See https://g.co/cloud/translate/v2/translate-reference#supported_languages
 
     credentials, project_id = google.auth.default()
-
-    # credentials, project_id = google.auth.default()
     translate_client = translate.Client(credentials=credentials)
 
     # Text can also be a sequence of strings, in which case this method
@@ -36,5 +34,12 @@ def translate_text(target_lang, text):
         text, target_language=target_lang)
 
     response = dict()
-    response['text'] = result['translatedText']
+    
+    if isinstance(result, dict):
+        response['text'] = result['translatedText']
+    elif isinstance(result, list):
+        response['text-lines'] = list()
+        for item in result:
+            response['text-lines'].append(item['translatedText'])
+    
     return response

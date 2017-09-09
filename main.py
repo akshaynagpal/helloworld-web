@@ -16,7 +16,7 @@
 import logging
 
 from flask import Flask, jsonify, request
-
+from translation import translate_text
 
 app = Flask(__name__)
 
@@ -29,16 +29,19 @@ def hello():
     }
     return jsonify(d)
 
-@app.route('/send')
+@app.route('/send', methods=['POST'])
 def send():
-    response = dict()
-    for key in request.headers.keys():
-        response[key] = request.headers[key]
+    req_json = request.get_json(force=True, cache=False)
+    # src_lang = req_json['src-lang']
+    dest_lang = req_json['dest-lang']
+    msg_text  = req_json['msg-text']
+    response  = translate_text(dest_lang, msg_text)
     return jsonify(response)
+
 
 @app.errorhandler(500)
 def server_error(e):
     # Log the error and stacktrace.
-    logging.exception('An error occurred during a request.')
+    logging.exception(e)
     return 'An internal error occurred.', 500
 # [END app]

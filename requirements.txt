@@ -1,2 +1,6 @@
-google-cloud
+google-api-python-client
+requests
 Flask==0.12.2
+pyopenssl
+ndg-httpsclient
+pyasn1

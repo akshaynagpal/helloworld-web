@@ -5,3 +5,10 @@ threadsafe: true
 handlers:
 - url: /.*
   script: main.app
+
+# env_variables:
+#   GOOGLE_APPLICATION_CREDENTIALS: 'keys/interchat-backend-9207fc9ed3a0.json'
+
+libraries:
+- name: ssl
+  version: latest

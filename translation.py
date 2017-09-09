@@ -1,24 +1,67 @@
-from google.cloud import translate
+from google.cloud import translate, datastore
 import google.auth
 import logging
 
 
-# def translate_text(source_lang, target_lang, text):
-#     """Translates text into the target language.
-#     Target must be an ISO 639-1 language code.
-#     See https://g.co/cloud/translate/v2/translate-reference#supported_languages
-#     """
-#     translate_client = translate.Client()
+class DataStore(object):
+    def __init__(self, project_id):
+        self.client = datastore.Client(project_id)
 
-#     # Text can also be a sequence of strings, in which case this method
-#     # will return a sequence of results for each text.
-#     result = translate_client.translate(
-#         text, target_language=target_lang)
+    def add_user(self, uid, email, pref_lang):
+        response = dict()
+        try:
+            key = self.client.key('user', email)
+            user = datastore.Entity(key, exclude_from_indexes=['pref-lang'])
+            user.update({
+                'uid': uid,
+                'pref-lang': pref_lang
+            })
 
-#     print(u'Text: {}'.format(result['input']))
-#     print(u'Translation: {}'.format(result['translatedText']))
-#     print(u'Detected source language: {}'.format(
-#         result['detectedSourceLanguage']))
+            self.client.put(user)
+            response['status'] = True
+            response['message'] = 'User added successfully'
+        except ValueError as e:
+            response['status'] = False
+            response['message'] = str(e)
+
+        return response
+
+    def update_user(self, email, data):
+        response = dict()
+        try:
+            with self.client.transaction():
+                key = self.client.key('user', email)
+                user = self.client.get(key)
+
+                if not user:
+                    raise ValueError('User does not exist')
+
+                for key, val in data.iteritems():
+                    user[key] = val
+
+                self.client.put(user)
+        
+                response['status'] = True
+                response['message'] = 'User updated successfully'
+        
+        except ValueError as e:
+             response['status'] = False
+             response['message'] = str(e)
+
+        return response
+
+
+def add_user(uid, email, pref_lang='en'):
+    credentials, project_id = google.auth.default()
+    ds_client = DataStore(project_id)
+    return ds_client.add_user(uid, email, pref_lang)
+
+
+def update_user(email, data):
+    credentials, project_id = google.auth.default()
+    ds_client = DataStore(project_id)
+    return ds_client.update_user(email, data)
+
 
 def translate_text(target_lang, text):
     # Translates text into the target language.

@@ -106,7 +106,7 @@ def translate_text(target_lang, text):
 
 def get_dest_lang(user_data):
     user = get_user(user_data)
-    return user['pref-lang']
+    return user[0]['pref-lang']
  
 def firebase_send(senderId, receiverId, send_data):
     FIREBASE = pyrebase.initialize_app(FIREBASE_CONFIG)

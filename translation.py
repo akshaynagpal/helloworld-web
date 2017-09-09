@@ -3,6 +3,7 @@ import google.auth
 import json
 import pyrebase
 import json
+import logging
 
 FIREBASE_CONFIG = None
 with open('keys/firebase-secrets.json') as f:
@@ -88,13 +89,13 @@ def translate_text(target_lang, text):
     credentials, project_id = google.auth.default()
     translate_client = translate.Client(credentials=credentials)
 
+    logging.info(target_lang)
+    logging.info(text)
     # Text can also be a sequence of strings, in which case this method
     # will return a sequence of results for each text.
-    result = translate_client.translate(
-        text, target_language=target_lang)
+    result = translate_client.translate(text, target_language=target_lang)
 
     response = dict()
-    
     if isinstance(result, dict):
         response['text'] = result['translatedText']
     elif isinstance(result, list):

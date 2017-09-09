@@ -14,7 +14,6 @@
 
 # [START app]
 import logging
-
 from flask import Flask, jsonify, request
 import translation as tr 
 
@@ -26,11 +25,12 @@ def send():
     req_json = request.get_json(force=True, cache=False)
     
     # firebase send logic here
+    response = dict()
     try:
         receiverId = req_json['receiverId']
         senderId = req_json['senderId']
         
-        dest_lang = tr.get_dest_lang({'uid':receiverId})
+        dest_lang = tr.get_dest_lang({'uid': [receiverId]})
         msg_text = req_json['msg'] 
         translated = tr.translate_text(dest_lang, msg_text)
 
@@ -39,17 +39,17 @@ def send():
             'timestamp': int(req_json['timestamp']),
             'userid': receiverId
         }
+
         tr.firebase_send(senderId, receiverId, send_data)
-        return {
-            'status': True,
-            'message': 'Message sent'
-        }
+
+        response['status'] = True
+        response['message'] = 'Message sent'
   
     except Exception as e:
-        return {
-            'status': False,
-            'message': str(e)
-        }
+        response['status'] = False
+        response['message'] = str(e)
+
+    return jsonify(response)
 
 
 @app.route('/user/add', methods=['POST'])
